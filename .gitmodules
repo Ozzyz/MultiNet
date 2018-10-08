@@ -4,9 +4,6 @@
 [submodule "submodules/KittiBox"]
 	path = submodules/KittiBox
 	url = https://github.com/MarvinTeichmann/KittiBox.git
-[submodule "submodules/KittiClass"]
-	path = submodules/KittiClass
-	url = https://github.com/MarvinTeichmann/KittiClass
 [submodule "submodules/tensorflow-fcn"]
 	path = submodules/tensorflow-fcn
 	url = https://github.com/MarvinTeichmann/tensorflow-fcn

@@ -4,6 +4,8 @@ __pycache__/
 *$py.class
 sftp-config.json
 
+# DATA Folder
+DATA/
 
 # C extensions
 *.so
