@@ -131,6 +131,7 @@ def main():
         logging.info("Copied {} to {}.".format(filename, target_dir))
 
     # Checking whether the user provides the correct URL
+    """
     if not kitti_data_url[13:33] == 'is.tue.mpg.de/kitti/':
         logging.error("Wrong url.")
         url = "http://www.cvlibs.net/download.php?file=data_road.zip"
@@ -140,7 +141,7 @@ def main():
         logging.error("Rerun and enter the received [url] using"
                       "'python download_data.py --kitti_url [url]'")
         exit(1)
-
+    """
     for zip_file, subdir in zip(kitti_download_files, data_sub_dirs):
         # Get name of downloaded zip file
         file_dir = os.path.join(data_dir, subdir)
@@ -154,7 +155,6 @@ def main():
             logging.info("Skipping Download and extraction.")
             logging.info("Remove: {} if you wish to download that data again."
                          .format(final_file))
-            logging.info()
             continue
         # Make Kitti_URL
         kitti_main = os.path.dirname(kitti_data_url)
