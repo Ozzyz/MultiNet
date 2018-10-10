@@ -2,7 +2,7 @@ from skimage.io import imread, imsave
 import numpy as np
 import os
 
-data_path = os.path.join('DATA', 'seg', 'color_labels')
+data_path = os.path.join('DATA', 'bdd100k', 'seg', 'color_labels')
 
 for root, dirs, files in os.walk(data_path, topdown=True):
     i = 0
