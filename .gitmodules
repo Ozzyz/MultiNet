@@ -10,3 +10,6 @@
 [submodule "submodules/TensorVision"]
 	path = submodules/TensorVision
 	url = https://github.com/TensorVision/TensorVision.git
+[submodule "submodules/bdd-data"]
+	path = submodules/bdd-data
+	url = https://github.com/Ozzyz/bdd-data.git
