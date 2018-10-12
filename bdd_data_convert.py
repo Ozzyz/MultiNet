@@ -88,15 +88,16 @@ def create_ref_file(IMG_DIR, GT_DIR, out_filename):
     images = sorted(os.listdir(IMG_DIR))
     labels = sorted(os.listdir(GT_DIR))
     with open(out_filename, 'w') as f:
-        for img, label in zip(images, labels):
+        for img in images: #, label in zip(images, labels):
             img_name = img.split('.')[0]
-            if img_name not in label:
-                print(img_name, label)
-                raise Exception
-            
-            img_path = os.path.join(IMG_DIR, img)
-            label_path = os.path.join(GT_DIR, label)
-            f.write("{} {}\n".format(img_path, label_path))
+            if any(img_name in label for label in labels):
+		print(img_name, label)
+                img_path = os.path.join(IMG_DIR, img)
+                label_path = os.path.join(GT_DIR, label)
+                f.write("{} {}\n".format(img_path, label_path))
+	    else:
+		print(img_name)
+		raise Exception
 
 def make_bbox_ref_file(IMG_DIR, KITTI_LABELS_DIR, out_filename):
     """ Loop through all kitti labels and find the corresponding image"""
@@ -122,5 +123,5 @@ if __name__ == "__main__":
     IMG_DIR = "DATA/bdd100k/seg/images/train"
     KITTI_LABELS = "DATA/bdd100k/kitti_labels/train"
 
-    #create_ref_file(IMG_DIR, KITTI_LABELS, "bbox_train.txt")
-    make_bbox_ref_file(IMG_DIR, KITTI_LABELS, "kitti_test")
+    create_ref_file(IMG_DIR, KITTI_LABELS, "bdd_train.txt")
+    #make_bbox_ref_file(IMG_DIR, KITTI_LABELS, "kitti_test")
