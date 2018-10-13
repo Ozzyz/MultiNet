@@ -14,16 +14,32 @@ Truck 0.00 0 -1.57 599.41 156.40 629.75 189.25 2.85 2.63 12.34 0.47 1.49 69.44 -
 import json
 import os
 import pandas as pd
+import numpy as np
+import logging
+from matplotlib.path import Path
+from matplotlib import patches
+import matplotlib.pyplot as plt
+import cv2 
+
+
 LABEL_DIR = "DATA/bdd100k/labels/"
 OUT_DIR = "DATA/bdd100k/kitti_labels/train" # Where to write the converted Kitti labels
+SEG_OUT_DIR = "DATA/bdd100k/new_seg/val"
+IMG_DIR = "DATA/bdd100k/images/100k/val"
+
 if not os.path.exists(OUT_DIR):
     os.makedirs(OUT_DIR)
+
+if not os.path.exists(SEG_OUT_DIR):
+    os.makedirs(SEG_OUT_DIR)
+
 train_filepath = LABEL_DIR + "bdd100k_labels_images_train.json"
 val_filepath = LABEL_DIR + "bdd100k_labels_images_val.json"
 
-CATEGORIES = ['Person', 'traffic sign',
+OBJ_CATEGORIES = ['Person', 'traffic sign',
               'traffic light', 'car', 'bike', 'truck']
 
+ROAD_CATEGORIES = ['drivable area']
 
 def read_json(filepath):
     """ Reads the json file at the given filepath and returns a dict representation of the file """
@@ -31,45 +47,105 @@ def read_json(filepath):
         return json.loads(f.read())
 
 
-def convert_to_kitti(json_dict):
+def write_all_images_and_labels(json_dict, show=False):
+    """Writes all labels and segmented images specified in the given dict 
+    to OUT_DIR for the kitti-formated labels and SEG_OUT_DIR for the segmented images."""
     for entry in json_dict:
-        write_kitti_file(entry)
+        write_label_and_segment(entry, show=show)
 
 
-def write_kitti_file(json_entry):
+def write_label_and_segment(json_entry, show=False):
     """ 
-    Extracts all values of interest from the bdd json entry and returns a dataframe where
-    each row is a bounding box for an object in the image.
+    Extracts all values of interest from the bdd json entry and writes bounding box 
+    info to file, as well as writing segmented road images.
     """
     
     name = json_entry["name"]
     filename = name.split('.')[0] + ".txt"
     filepath = os.path.join(OUT_DIR, filename)
+    out_path = os.path.join(SEG_OUT_DIR, name)
     labels = json_entry["labels"]
     kitti_string = ""
-    # Each bounding box in the image
+
+    contains_drivable = False
+    contains_object = False
+
+    categories_in_image = []
+
+    img_path = os.path.join(IMG_DIR, name)
+    img = cv2.imread(img_path)
+    seg_image = np.zeros_like(img)
+    
+
+    # Each bounding box or drivable area in the image
     for label in labels:
-        try:
-            category = label["category"]
-            if category not in CATEGORIES:
-                continue
-            truncated = label["attributes"]["truncated"]
-            # Since occluded is true/false in BDD but [0-3] in Kitti, map all true/false to 1/0.
-            occluded = int(label["attributes"]["occluded"])
-            # Assume observation angle is 0 for all entries, since this is not included in BDD100K
-            angle = 0
-            x1, y1, x2, y2 = label["box2d"].values()
-            bbox_id = label["id"]
-        except KeyError as e:
-            print("Keyerror when extracting label for {}, key: {}".format(name, e))
-            continue
-        kitti_string += "{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n".format(
-            category, truncated, occluded, angle, x1, y1, x2, y2, bbox_id, 0, 0, 0, 0, 0, 0, 0)
+        category = label["category"]
+        categories_in_image.append(category)
+        if category in OBJ_CATEGORIES:
+            kitti_string += extract_bboxes(label)
+            contains_object = True
+        if category in ROAD_CATEGORIES:
+            partial_seg_image = extract_and_draw_drivable_area(seg_image, label, show=True)
+            seg_image += partial_seg_image
+            contains_drivable = True
+
+    if show:
+        cv2.imshow('img', seg_image)
+        cv2.waitKey(0)
+    
+    logging.info(f"Wriging {out_path}.")
+    cv2.imwrite(out_path, seg_image)
+    if not (contains_drivable and contains_object):
+        logging.warn(f"{name} : contains_drivable: {contains_drivable}, contains_object: {contains_object}")
+    logging.info(f"Categories in image {name}: {categories_in_image}")
 
     with open(filepath, 'w') as f:
-        print("Writing ", filepath, "to file")
+        logging.info(f"Writing {filepath}")
         f.write(kitti_string)
     
+
+def extract_and_draw_drivable_area(img, label, seg_color = [255, 0, 255], show=False):
+    """ Extracts the poly2d information from the drivable area entry and returns a segmented image.
+        Each poly2d-entry contains a vertices-entry which is a list of lists of nodes. 
+        It also contains a 'type'-entry which is a string like 'LLLCCCL' where L in the i'th entry
+        means that node i should be drawn as a cubic Bézier curve (C) or a line (L). 
+    """
+    LINE_TYPES = {'L' : Path.LINETO, 'C': Path.CURVE4}
+    polygons = label["poly2d"]
+
+    #logging.info(f"Writing polygons on image {img_path}")
+    for polygon in polygons:
+        # TODO: Find out how to write custom curves instead of just line
+        draw_codes = [LINE_TYPES[code] for code in polygon["types"]]        
+        draw_closed = polygon["closed"]
+
+        nodes = [node for node in polygon["vertices"]]
+        if draw_closed:
+            nodes.append(nodes[0])
+        nodes = np.array(nodes, dtype=np.int32)
+
+        nodes = nodes.reshape((-1, 1, 2))
+        cv2.fillConvexPoly(img, nodes, seg_color)
+    
+    return img
+
+
+def extract_bboxes(label):
+    """ Returns a string in kitti-format with the extracted entries from the label dict """
+    try:
+        category = label["category"]
+        truncated = label["attributes"]["truncated"]
+        # Since occluded is true/false in BDD but [0-3] in Kitti, map all true/false to 1/0.
+        occluded = int(label["attributes"]["occluded"])
+        # Assume observation angle is 0 for all entries, since this is not included in BDD100K
+        angle = 0
+        x1, y1, x2, y2 = label["box2d"].values()
+        bbox_id = label["id"]
+        return "{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n".format(
+                category, truncated, occluded, angle, x1, y1, x2, y2, bbox_id, 0, 0, 0, 0, 0, 0, 0)
+    except KeyError as e:
+        logging.warn("Keyerror when extracting label for {}, key: {}".format(category, e))
+    return ""
 
 def create_ref_file(IMG_DIR, GT_DIR, out_filename):
     """Creates the reference files needed by the modules to perform training. 
@@ -91,13 +167,12 @@ def create_ref_file(IMG_DIR, GT_DIR, out_filename):
         for img in images: #, label in zip(images, labels):
             img_name = img.split('.')[0]
             if any(img_name in label for label in labels):
-		print(img_name, label)
                 img_path = os.path.join(IMG_DIR, img)
                 label_path = os.path.join(GT_DIR, label)
                 f.write("{} {}\n".format(img_path, label_path))
-	    else:
-		print(img_name)
-		raise Exception
+            else:
+                print(img_name)
+                raise Exception
 
 def make_bbox_ref_file(IMG_DIR, KITTI_LABELS_DIR, out_filename):
     """ Loop through all kitti labels and find the corresponding image"""
@@ -118,10 +193,10 @@ def make_bbox_ref_file(IMG_DIR, KITTI_LABELS_DIR, out_filename):
 
 
 if __name__ == "__main__":
-    #json_dict = read_json(train_filepath)
-    #convert_to_kitti(json_dict)
-    IMG_DIR = "DATA/bdd100k/seg/images/train"
-    KITTI_LABELS = "DATA/bdd100k/kitti_labels/train"
+    json_dict = read_json(val_filepath)
+    write_all_images_and_labels(json_dict, show=False)
+    #IMG_DIR = "DATA/bdd100k/seg/images/train"
+    #KITTI_LABELS = "DATA/bdd100k/kitti_labels/train"
 
-    create_ref_file(IMG_DIR, KITTI_LABELS, "bdd_train.txt")
+    #create_ref_file(IMG_DIR, KITTI_LABELS, "bdd_train.txt")
     #make_bbox_ref_file(IMG_DIR, KITTI_LABELS, "kitti_test")
