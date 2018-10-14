@@ -20,21 +20,21 @@ from matplotlib.path import Path
 from matplotlib import patches
 import matplotlib.pyplot as plt
 import cv2 
+import argparse
 
+#LABEL_DIR = "DATA/bdd100k/labels/"
+#OUT_DIR = "DATA/bdd100k/kitti_labels/val" # Where to write the converted Kitti labels
+#SEG_OUT_DIR = "DATA/bdd100k/new_seg/train"
+#IMG_DIR = "DATA/bdd100k/images/100k/train"
 
-LABEL_DIR = "DATA/bdd100k/labels/"
-OUT_DIR = "DATA/bdd100k/kitti_labels/train" # Where to write the converted Kitti labels
-SEG_OUT_DIR = "DATA/bdd100k/new_seg/val"
-IMG_DIR = "DATA/bdd100k/images/100k/val"
+#if not os.path.exists(OUT_DIR):
+#    os.makedirs(OUT_DIR)
+#
+#if not os.path.exists(SEG_OUT_DIR):
+#    os.makedirs(SEG_OUT_DIR)
 
-if not os.path.exists(OUT_DIR):
-    os.makedirs(OUT_DIR)
-
-if not os.path.exists(SEG_OUT_DIR):
-    os.makedirs(SEG_OUT_DIR)
-
-train_filepath = LABEL_DIR + "bdd100k_labels_images_train.json"
-val_filepath = LABEL_DIR + "bdd100k_labels_images_val.json"
+#train_filepath = LABEL_DIR + "bdd100k_labels_images_train.json"
+#val_filepath = LABEL_DIR + "bdd100k_labels_images_val.json"
 
 OBJ_CATEGORIES = ['Person', 'traffic sign',
               'traffic light', 'car', 'bike', 'truck']
@@ -47,14 +47,14 @@ def read_json(filepath):
         return json.loads(f.read())
 
 
-def write_all_images_and_labels(json_dict, show=False):
+def write_all_images_and_labels(json_dict, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR, show=False):
     """Writes all labels and segmented images specified in the given dict 
-    to OUT_DIR for the kitti-formated labels and SEG_OUT_DIR for the segmented images."""
+    to LABEL_OUT_DIR for the kitti-formated labels and SEG_OUT_DIR for the segmented images."""
     for entry in json_dict:
-        write_label_and_segment(entry, show=show)
+        write_label_and_segment(entry, LABEL_OUT_DIR, SEG_OUT_DIR,SRC_IMG_DIR, show=show)
 
 
-def write_label_and_segment(json_entry, show=False):
+def write_label_and_segment(json_entry, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR, show=False):
     """ 
     Extracts all values of interest from the bdd json entry and writes bounding box 
     info to file, as well as writing segmented road images.
@@ -62,17 +62,17 @@ def write_label_and_segment(json_entry, show=False):
     
     name = json_entry["name"]
     filename = name.split('.')[0] + ".txt"
-    filepath = os.path.join(OUT_DIR, filename)
+    filepath = os.path.join(LABEL_OUT_DIR, filename)
     out_path = os.path.join(SEG_OUT_DIR, name)
     labels = json_entry["labels"]
     kitti_string = ""
-
+    logging.info(f"Reading json entry for file {name}")
     contains_drivable = False
     contains_object = False
 
     categories_in_image = []
 
-    img_path = os.path.join(IMG_DIR, name)
+    img_path = os.path.join(SRC_IMG_DIR, name)
     img = cv2.imread(img_path)
     seg_image = np.zeros_like(img)
     
@@ -147,7 +147,8 @@ def extract_bboxes(label):
         logging.warn("Keyerror when extracting label for {}, key: {}".format(category, e))
     return ""
 
-def create_ref_file(IMG_DIR, GT_DIR, out_filename):
+
+def create_label_ref_file(IMG_DIR, LABEL_DIR, out_filename):
     """Creates the reference files needed by the modules to perform training. 
     Each reference file (val or train) consists of two entries per line, where the first
     is a filepath to an image, and the second is a filepath to the ground truth (.txt file for 
@@ -157,25 +158,56 @@ def create_ref_file(IMG_DIR, GT_DIR, out_filename):
     and that there is a one-to-one match between images and labels. 
     Arguments:
         IMG_DIR -- Filepath to directory where all images are
-        GT_DIR -- Filepath to directory where ground truths are. 
+        LABEL_DIR -- Filepath to directory where ground truths are. 
         out_filename -- What the resulting reference file will be named
     """
 
     images = sorted(os.listdir(IMG_DIR))
-    labels = sorted(os.listdir(GT_DIR))
+    labels = sorted(os.listdir(LABEL_DIR))
     with open(out_filename, 'w') as f:
         for img in images: #, label in zip(images, labels):
             img_name = img.split('.')[0]
+            label = img_name + ".txt"
             if any(img_name in label for label in labels):
                 img_path = os.path.join(IMG_DIR, img)
-                label_path = os.path.join(GT_DIR, label)
-                f.write("{} {}\n".format(img_path, label_path))
+                label_path = os.path.join(LABEL_DIR, label)
+                f.write(f"{img_path} {label_path}\n")
             else:
                 print(img_name)
                 raise Exception
 
+def create_seg_ref_file(IMG_DIR, SEG_DIR, out_filename):
+    """ Creates the reference files needed by the modules to perform training. 
+    Each reference file (val or train) consists of two entries per line, where the first
+    is a filepath to an image, and the second is a filepath to the ground truth (.txt file for 
+    bboxes or image for masks). 
+    
+    Note: The method assumes that the directories contains nothing else than the image and label files,
+    and that there is a one-to-one match between images and labels. 
+    Arguments:
+        IMG_DIR -- Filepath to directory where all images are
+        SEG_DIR -- Filepath to directory where ground truths are. 
+        out_filename -- What the resulting reference file will be named
+    """
+    images = os.listdir(IMG_DIR)
+    seg_images = os.listdir(SEG_DIR)
+
+    with open(out_filename, 'w') as f:
+        for image in images:
+            img_id = image.split('.')[0]
+            if not any(img_id in seg_img for seg_img in seg_images):
+                logging.warn(f"Could not find segmented image for image id {img_id}")
+                continue
+            img_path = os.path.join(IMG_DIR, image)
+            seg_path = os.path.join(SEG_DIR, img_id+".jpg")
+            f.write(f"{img_path} {seg_path}\n")
+    
+
 def make_bbox_ref_file(IMG_DIR, KITTI_LABELS_DIR, out_filename):
-    """ Loop through all kitti labels and find the corresponding image"""
+    """ Loop through all kitti labels and find the corresponding image.
+        Then, create a file with name {out_filename} where each row 
+        is of format {img_path} {label_path}
+    """
 
     images = set(os.listdir(IMG_DIR))
     pairs = []
@@ -192,11 +224,35 @@ def make_bbox_ref_file(IMG_DIR, KITTI_LABELS_DIR, out_filename):
         f.write(entries)
 
 
-if __name__ == "__main__":
-    json_dict = read_json(val_filepath)
-    write_all_images_and_labels(json_dict, show=False)
-    #IMG_DIR = "DATA/bdd100k/seg/images/train"
-    #KITTI_LABELS = "DATA/bdd100k/kitti_labels/train"
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--src_img_dir', default="DATA/bdd100k/images/100k/val", type=str, help="The directory of source images")
+    parser.add_argument('--json_path', default="DATA/bdd100k/labels/bdd100k_labels_images_val.json", type=str, help="The filepath to the json annotation file")
 
-    #create_ref_file(IMG_DIR, KITTI_LABELS, "bdd_train.txt")
-    #make_bbox_ref_file(IMG_DIR, KITTI_LABELS, "kitti_test")
+    parser.add_argument('--seg_out_dir', default="DATA/bdd100k/new_seg/val", type=str, help="Where the segmented images will be stored")
+    parser.add_argument('--labels_out_dir', default='DATA/bdd100k/kitti_labels/val', type=str, help="Where the bboxes for each image will be stored")
+    parser.add_argument('--seg_out_file', default='img_seg_val.txt', type=str, help="The filename of the file that links images and segmented images")
+    parser.add_argument('--labels_out_file', default='img_bbox_val.txt', type=str, help="The filename of the file that links images and label (.txt) files")
+
+    return parser.parse_args()
+
+def maybe_create_dir(*dirs):
+    """ Creates the directories if they do not exist """
+    for dir_path in dirs:
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+            logging.info(f"Creating dir {dir_path}")
+        else:
+            logging.info(f"{dir_path} already exists - skipping.")
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    # Create all segmented images and labels
+    json_dict = read_json(args.json_path)
+    LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR = args.labels_out_dir, args.seg_out_dir, args.src_img_dir
+    maybe_create_dir(LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR)
+    write_all_images_and_labels(json_dict, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR, show=False)
+    # Create link files that connects input (img) and output (bboxes or segmentation) 
+    create_label_ref_file(SRC_IMG_DIR, LABEL_OUT_DIR, args.labels_out_file)
+    create_seg_ref_file(SRC_IMG_DIR, SEG_OUT_DIR, args.seg_out_file)
