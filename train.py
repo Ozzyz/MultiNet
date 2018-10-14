@@ -141,6 +141,7 @@ def build_training_graph(hypes, queue, modules, first_iter):
     with tf.name_scope("Optimizer"):
         global_step = tf.Variable(0, trainable=False)
         # Build training operation
+        print(hypes)
         train_op = optimizer.training(hypes, losses,
                                       global_step, learning_rate)
 
@@ -204,7 +205,7 @@ def run_united_training(meta_hypes, subhypes, submodules, subgraph, tv_sess,
     # eval_names, eval_ops = zip(*tv_graph['eval_list'])
     # Run the training Step
     start_time = time.time()
-    for step in xrange(start_step, meta_hypes['solver']['max_steps']):
+    for step in range(start_step, meta_hypes['solver']['max_steps']):
 
         # select on which model to run the training step
         # select model randomly?

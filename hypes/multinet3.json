@@ -1,13 +1,12 @@
 {
     "models": {
         "segmentation" : "../submodules/KittiSeg/hypes/KittiSeg.json",
-        "detection" : "../submodules/KittiBox/hypes/kittiBox.json",
-        "road" : "../submodules/KittiClass/hypes/KittiClass.json"
+        "detection" : "../submodules/KittiBox/hypes/kittiBox.json"
     },
 
-    "model_list": ["segmentation", "detection", "road"],
+    "model_list": ["segmentation", "detection"],
 
-    "path": ["../incl", "../submodules/KittiSeg/incl", "../submodules/KittiBox/incl/", "../submodules/KittiClass/incl/"],
+    "path": ["../incl", "../submodules/KittiSeg/incl", "../submodules/KittiBox/incl/"],
 
     "logging": {
         "display_iter": 200,
