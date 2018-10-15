@@ -72,8 +72,10 @@ def _print_training_status(hypes, step, loss_values, start_time, lr):
                     '{loss_value2:.2f});'
                     ' lr = ({lr_value1:.2e}, {lr_value2:.2e}); '
                     '({sec_per_batch:.3f} sec)')
-        losses = loss_values.values()
-        lrs = lr.values()
+        losses = list(loss_values.values())
+        print(losses)
+        print(type(losses))
+        lrs = list(lr.values())
         logging.info(info_str.format(step=step,
                                      total_steps=hypes['solver']['max_steps'],
                                      loss_value1=losses[0],
@@ -170,6 +172,7 @@ def run_united_training(meta_hypes, subhypes, submodules, subgraph, tv_sess,
     # Unpack operations for later use
     summary = tf.Summary()
     sess = tv_sess['sess']
+    #Limit GPU usage when running on shared environment
     summary_writer = tv_sess['writer']
 
     solvers = {}
@@ -261,7 +264,7 @@ def run_united_training(meta_hypes, subhypes, submodules, subgraph, tv_sess,
                 train._print_eval_dict(eval_names[model], smoothed_results,
                                        prefix='(smooth)')
 
-            output = sess.run(subgraph['debug_ops'].values())
+            output = sess.run(subgraph['debug_ops']) #.values()
 
             for name, res in zip(subgraph['debug_ops'].keys(), output):
                 logging.info("{} : {}".format(name, res))
@@ -585,8 +588,10 @@ def main(_):
     if 'TV_DIR_RUNS' in os.environ:
         os.environ['TV_DIR_RUNS'] = os.path.join(os.environ['TV_DIR_RUNS'],
                                                  'MultiNet')
-
-    with tf.Session() as sess:
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.5)
+    config = tf.ConfigProto(gpu_options=gpu_options)
+    
+    with tf.Session(config=config) as sess:
 
         if not load_weights:
             utils.set_dirs(hypes, tf.app.flags.FLAGS.hypes)
