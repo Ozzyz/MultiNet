@@ -124,7 +124,7 @@ def extract_and_draw_drivable_area(img, label, seg_color = [255, 0, 255], show=F
         nodes = np.array(nodes, dtype=np.int32)
 
         nodes = nodes.reshape((-1, 1, 2))
-        cv2.fillConvexPoly(img, nodes, seg_color)
+        cv2.fillPoly(img, [nodes], seg_color)
     
     return img
 
