@@ -13,7 +13,6 @@ Truck 0.00 0 -1.57 599.41 156.40 629.75 189.25 2.85 2.63 12.34 0.47 1.49 69.44 -
 
 import json
 import os
-import pandas as pd
 import numpy as np
 import logging
 from matplotlib.path import Path
