@@ -231,7 +231,7 @@ def parse_args():
     parser.add_argument('--seg_out_dir', default="DATA/bdd100k/new_seg/train", type=str, help="Where the segmented images will be stored")
     parser.add_argument('--labels_out_dir', default='DATA/bdd100k/kitti_labels/train', type=str, help="Where the bboxes for each image will be stored")
     parser.add_argument('--seg_out_file', default='img_seg_train.txt', type=str, help="The filename of the file that links images and segmented images")
-    parser.add_argument('--labels_out_file', default='img_bbox_train.txt', type=str, help="The filename of the file that links images and label (.txt) files")
+    parser.add_argument('--labels_out_file', default='img_bbox_val.txt', type=str, help="The filename of the file that links images and label (.txt) files")
 
     return parser.parse_args()
 
