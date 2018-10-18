@@ -313,10 +313,10 @@ def main(_):
     logdir = logdir
     utils.load_plugins()
 
-    if 'TV_DIR_DATA' in os.environ:
-        data_file = os.path.join(os.environ['TV_DIR_DATA'], data_file)
+    if 'TV_DIR_ALL_DATA' in os.environ:
+        data_file = os.path.join(os.environ['TV_DIR_ALL_DATA'], data_file)
     else:
-        data_file = os.path.join('DATA', data_file)
+        data_file = os.path.join('ALL_DATA', data_file)
 
     if not os.path.exists(data_file):
         logging.error('Please provide a valid data_file.')

@@ -200,19 +200,19 @@ def road_draw(image, highway):
     im = Image.fromarray(image.astype('uint8'))
     draw = ImageDraw.Draw(im)
 
-    fnt = ImageFont.truetype('FreeMono/FreeMonoBold.ttf', 40)
+    #fnt = ImageFont.truetype('FreeMono/FreeMonoBold.ttf', 40)
 
     shape = image.shape
 
     if highway:
         draw.text((65, 10), "Highway",
-                  font=fnt, fill=(255, 255, 0, 255))
+                  fill=(255, 255, 0, 255))
 
         draw.ellipse([10, 10, 55, 55], fill=(255, 255, 0, 255),
                      outline=(255, 255, 0, 255))
     else:
         draw.text((65, 10), "minor road",
-                  font=fnt, fill=(255, 0, 0, 255))
+                  fill=(255, 0, 0, 255))
 
         draw.ellipse([10, 10, 55, 55], fill=(255, 0, 0, 255),
                      outline=(255, 0, 0, 255))
