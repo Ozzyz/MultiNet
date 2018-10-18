@@ -20,6 +20,7 @@ from matplotlib import patches
 import matplotlib.pyplot as plt
 import cv2 
 import argparse
+import sys
 
 #LABEL_DIR = "DATA/bdd100k/labels/"
 #OUT_DIR = "DATA/bdd100k/kitti_labels/val" # Where to write the converted Kitti labels
@@ -125,6 +126,7 @@ def extract_and_draw_drivable_area(img, label, seg_color = [255, 0, 255], show=F
 
         nodes = nodes.reshape((-1, 1, 2))
         cv2.fillPoly(img, [nodes], seg_color)
+        img[img > 0] = 255
     
     return img
 
@@ -225,13 +227,13 @@ def make_bbox_ref_file(IMG_DIR, KITTI_LABELS_DIR, out_filename):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--src_img_dir', default="DATA/bdd100k/images/100k/val", type=str, help="The directory of source images")
-    parser.add_argument('--json_path', default="DATA/bdd100k/labels/bdd100k_labels_images_val.json", type=str, help="The filepath to the json annotation file")
+    parser.add_argument('--src_img_dir', default="DATA/bdd100k/images/100k/train", type=str, help="The directory of source images")
+    parser.add_argument('--json_path', default="DATA/bdd100k/labels/bdd100k_labels_images_train.json", type=str, help="The filepath to the json annotation file")
 
-    parser.add_argument('--seg_out_dir', default="DATA/bdd100k/new_seg/val", type=str, help="Where the segmented images will be stored")
-    parser.add_argument('--labels_out_dir', default='DATA/bdd100k/kitti_labels/val', type=str, help="Where the bboxes for each image will be stored")
-    parser.add_argument('--seg_out_file', default='DATA/img_seg_val.txt', type=str, help="The filename of the file that links images and segmented images")
-    parser.add_argument('--labels_out_file', default='DTA/img_bbox_val.txt', type=str, help="The filename of the file that links images and label (.txt) files")
+    parser.add_argument('--seg_out_dir', default="DATA/bdd100k/new_seg/train", type=str, help="Where the segmented images will be stored")
+    parser.add_argument('--labels_out_dir', default='DATA/bdd100k/kitti_labels/train', type=str, help="Where the bboxes for each image will be stored")
+    parser.add_argument('--seg_out_file', default='DATA/img_seg_train.txt', type=str, help="The filename of the file that links images and segmented images")
+    parser.add_argument('--labels_out_file', default='DATA/img_bbox_train.txt', type=str, help="The filename of the file that links images and label (.txt) files")
 
     return parser.parse_args()
 
@@ -248,10 +250,10 @@ def maybe_create_dir(*dirs):
 if __name__ == "__main__":
     args = parse_args()
     # Create all segmented images and labels
-    #json_dict = read_json(args.json_path)
+    json_dict = read_json(args.json_path)
     LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR = args.labels_out_dir, args.seg_out_dir, args.src_img_dir
     #maybe_create_dir(LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR)
-    #write_all_images_and_labels(json_dict, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR, show=False)
+    write_all_images_and_labels(json_dict, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR, show=False)
     # Create link files that connects input (img) and output (bboxes or segmentation) 
-    create_label_ref_file(SRC_IMG_DIR, LABEL_OUT_DIR, args.labels_out_file)
-    create_seg_ref_file(SRC_IMG_DIR, SEG_OUT_DIR, args.seg_out_file)
+    #create_label_ref_file(SRC_IMG_DIR, LABEL_OUT_DIR, args.labels_out_file)
+    #create_seg_ref_file(SRC_IMG_DIR, SEG_OUT_DIR, args.seg_out_file)
