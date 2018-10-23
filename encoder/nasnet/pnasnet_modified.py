@@ -100,6 +100,7 @@ def _build_pnasnet_base(images,
 
   # pylint: disable=protected-access
   stem = lambda: nasnet._imagenet_stem(images, hparams, normal_cell)
+  print("images", images)
   # pylint: enable=protected-access
   net, cell_outputs = stem()
   if add_and_check_endpoint('Stem', net):
@@ -140,6 +141,17 @@ def _build_pnasnet_base(images,
                              scope='aux_{}'.format(cell_num))
       # pylint: enable=protected-access
 
+  print(cell_outputs)
+
+  logits = {}
+  logits['images'] = images
+  logits['fcn_in'] = net
+  logits['feed4'] = cell_outputs[7]
+  logits['feed2'] = cell_outputs[8]
+  logits['early_feat'] = cell_outputs[7]
+  logits['deep_feat'] = net
+  return logits, end_points
+  """
   # Final softmax layer
   with tf.variable_scope('final_layer'):
     net = tf.nn.relu(net)
@@ -147,10 +159,6 @@ def _build_pnasnet_base(images,
     if add_and_check_endpoint('global_pool', net) or not num_classes:
       return net, end_points
     net = slim.dropout(net, hparams.dense_dropout_keep_prob, scope='dropout')
-    logits = {}
-    logits['fcn_in'] = net
-    return logits, end_points
-    """
     logits = slim.fully_connected(net, num_classes)
 
     if add_and_check_endpoint('Logits', logits):

@@ -100,6 +100,7 @@ def _build_pnasnet_base(images,
 
   # pylint: disable=protected-access
   stem = lambda: nasnet._imagenet_stem(images, hparams, normal_cell)
+  print("images", images)
   # pylint: enable=protected-access
   net, cell_outputs = stem()
   if add_and_check_endpoint('Stem', net):
@@ -139,6 +140,8 @@ def _build_pnasnet_base(images,
       nasnet._build_aux_head(aux_net, end_points, num_classes, hparams,
                              scope='aux_{}'.format(cell_num))
       # pylint: enable=protected-access
+
+  print(cell_outputs)
 
   # Final softmax layer
   with tf.variable_scope('final_layer'):
