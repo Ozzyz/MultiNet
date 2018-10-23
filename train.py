@@ -126,6 +126,9 @@ def build_training_graph(hypes, queue, modules, first_iter):
         with tf.name_scope("Inputs"):
             image, labels = data_input.inputs(hypes, queue, phase='train')
 
+        print(image)
+        print(labels)
+
         # Run inference on the encoder network
         logits = encoder.inference(hypes, image, train=True)
 

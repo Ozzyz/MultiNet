@@ -128,7 +128,7 @@ def build_training_graph(hypes, queue, modules, first_iter):
 
         # Run inference on the encoder network
         # [image]?
-        logits, end_points = encoder.build_nasnet_large(image, hypes["arch"]["num_classes"]) #.inference(hypes, image, train=True)
+        logits, end_points = encoder.build_pnasnet_large(image, hypes["arch"]["num_classes"]) #.inference(hypes, image, train=True)
 
         print("logits", logits)
     # Build decoder on top of the logits

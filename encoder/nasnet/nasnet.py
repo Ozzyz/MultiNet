@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 """Contains the definition for the NASNet classification networks.
+
 Paper: https://arxiv.org/abs/1707.07012
 """
 from __future__ import absolute_import
@@ -22,7 +23,7 @@ from __future__ import print_function
 import copy
 import tensorflow as tf
 
-from encoder import nasnet_utils
+from encoder.nasnet import nasnet_utils
 
 arg_scope = tf.contrib.framework.arg_scope
 slim = tf.contrib.slim
@@ -116,11 +117,13 @@ def nasnet_cifar_arg_scope(weight_decay=5e-4,
                            batch_norm_decay=0.9,
                            batch_norm_epsilon=1e-5):
   """Defines the default arg scope for the NASNet-A Cifar model.
+
   Args:
     weight_decay: The weight decay to use for regularizing the model.
     batch_norm_decay: Decay for batch norm moving average.
     batch_norm_epsilon: Small float added to variance to avoid dividing by zero
       in batch norm.
+
   Returns:
     An `arg_scope` to use for the NASNet Cifar Model.
   """
@@ -150,11 +153,13 @@ def nasnet_mobile_arg_scope(weight_decay=4e-5,
                             batch_norm_decay=0.9997,
                             batch_norm_epsilon=1e-3):
   """Defines the default arg scope for the NASNet-A Mobile ImageNet model.
+
   Args:
     weight_decay: The weight decay to use for regularizing the model.
     batch_norm_decay: Decay for batch norm moving average.
     batch_norm_epsilon: Small float added to variance to avoid dividing by zero
       in batch norm.
+
   Returns:
     An `arg_scope` to use for the NASNet Mobile Model.
   """
@@ -184,11 +189,13 @@ def nasnet_large_arg_scope(weight_decay=5e-5,
                            batch_norm_decay=0.9997,
                            batch_norm_epsilon=1e-3):
   """Defines the default arg scope for the NASNet-A Large ImageNet model.
+
   Args:
     weight_decay: The weight decay to use for regularizing the model.
     batch_norm_decay: Decay for batch norm moving average.
     batch_norm_epsilon: Small float added to variance to avoid dividing by zero
       in batch norm.
+
   Returns:
     An `arg_scope` to use for the NASNet Large Model.
   """
