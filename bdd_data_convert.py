@@ -36,6 +36,8 @@ import sys
 #train_filepath = LABEL_DIR + "bdd100k_labels_images_train.json"
 #val_filepath = LABEL_DIR + "bdd100k_labels_images_val.json"
 
+# Object categories in BDD. Note that the class names with spaces will be replaced by names with underscore instead.
+# E.g. 'traffic sign' will become traffic_sign. This is a limitation of KittiBox.
 OBJ_CATEGORIES = ['Person', 'traffic sign',
               'traffic light', 'car', 'bike', 'truck']
 
@@ -47,14 +49,14 @@ def read_json(filepath):
         return json.loads(f.read())
 
 
-def write_all_images_and_labels(json_dict, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR, show=False):
+def write_all_images_and_labels(json_dict, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR, show=False, write_segments=True):
     """Writes all labels and segmented images specified in the given dict 
     to LABEL_OUT_DIR for the kitti-formated labels and SEG_OUT_DIR for the segmented images."""
     for entry in json_dict:
-        write_label_and_segment(entry, LABEL_OUT_DIR, SEG_OUT_DIR,SRC_IMG_DIR, show=show)
+        write_label_and_segment(entry, LABEL_OUT_DIR, SEG_OUT_DIR,SRC_IMG_DIR, show=show, write_segments=write_segments)
 
 
-def write_label_and_segment(json_entry, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR, show=False):
+def write_label_and_segment(json_entry, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR, show=False, write_labels=True, write_segments=True):
     """ 
     Extracts all values of interest from the bdd json entry and writes bounding box 
     info to file, as well as writing segmented road images.
@@ -72,19 +74,19 @@ def write_label_and_segment(json_entry, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR,
 
     categories_in_image = []
 
-    img_path = os.path.join(SRC_IMG_DIR, name)
-    img = cv2.imread(img_path)
-    seg_image = np.zeros_like(img)
+    #img_path = os.path.join(SRC_IMG_DIR, name)
+    #img = cv2.imread(img_path)
+    #seg_image = np.zeros_like(img)
     
 
     # Each bounding box or drivable area in the image
     for label in labels:
         category = label["category"]
         categories_in_image.append(category)
-        if category in OBJ_CATEGORIES:
+        if category in OBJ_CATEGORIES and write_labels:
             kitti_string += extract_bboxes(label)
             contains_object = True
-        if category in ROAD_CATEGORIES:
+        if category in ROAD_CATEGORIES and write_segments:
             partial_seg_image = extract_and_draw_drivable_area(seg_image, label, show=True)
             seg_image += partial_seg_image
             contains_drivable = True
@@ -93,8 +95,8 @@ def write_label_and_segment(json_entry, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR,
         cv2.imshow('img', seg_image)
         cv2.waitKey(0)
     
-    logging.info(f"Wriging {out_path}.")
-    cv2.imwrite(out_path, seg_image)
+    logging.info(f"Writing {out_path}.")
+    #cv2.imwrite(out_path, seg_image)
     if not (contains_drivable and contains_object):
         logging.warn(f"{name} : contains_drivable: {contains_drivable}, contains_object: {contains_object}")
     logging.info(f"Categories in image {name}: {categories_in_image}")
@@ -135,6 +137,8 @@ def extract_bboxes(label):
     """ Returns a string in kitti-format with the extracted entries from the label dict """
     try:
         category = label["category"]
+        # KittiBox requires class names to be without whitespaces
+        category = category.replace(" ", "_")
         truncated = label["attributes"]["truncated"]
         # Since occluded is true/false in BDD but [0-3] in Kitti, map all true/false to 1/0.
         occluded = int(label["attributes"]["occluded"])
@@ -142,8 +146,10 @@ def extract_bboxes(label):
         angle = 0
         x1, y1, x2, y2 = label["box2d"].values()
         bbox_id = label["id"]
-        return "{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n".format(
+        kitti_string =  "{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n".format(
                 category, truncated, occluded, angle, x1, y1, x2, y2, bbox_id, 0, 0, 0, 0, 0, 0, 0)
+        logging.warn("Extracted kitti-formatted string: {}".format(kitti_string))
+        return kitti_string
     except KeyError as e:
         logging.warn("Keyerror when extracting label for {}, key: {}".format(category, e))
     return ""
@@ -252,8 +258,8 @@ if __name__ == "__main__":
     # Create all segmented images and labels
     json_dict = read_json(args.json_path)
     LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR = args.labels_out_dir, args.seg_out_dir, args.src_img_dir
-    #maybe_create_dir(LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR)
-    write_all_images_and_labels(json_dict, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR, show=False)
+    maybe_create_dir(LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR)
+    write_all_images_and_labels(json_dict, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR, show=False, write_segments=False)
     # Create link files that connects input (img) and output (bboxes or segmentation) 
     #create_label_ref_file(SRC_IMG_DIR, LABEL_OUT_DIR, args.labels_out_file)
     #create_seg_ref_file(SRC_IMG_DIR, SEG_OUT_DIR, args.seg_out_file)
