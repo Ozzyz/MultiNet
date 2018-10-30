@@ -4,8 +4,8 @@ __pycache__/
 *$py.class
 sftp-config.json
 
-# ALL_DATA Folder
-ALL_DATA/
+# DATASET Folder
+DATASET/
 
 # C extensions
 *.so
@@ -91,5 +91,5 @@ ENV/
 
 # Rope project settings
 .ropeproject
-ALL_DATA
+DATASET
 RUNS
