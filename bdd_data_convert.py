@@ -146,9 +146,8 @@ def extract_bboxes(label):
         angle = 0
         x1, y1, x2, y2 = label["box2d"].values()
         bbox_id = label["id"]
-        kitti_string =  "{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n".format(
-                category, truncated, occluded, angle, x1, y1, x2, y2, bbox_id, 0, 0, 0, 0, 0, 0, 0)
-        logging.warn("Extracted kitti-formatted string: {}".format(kitti_string))
+        kitti_string =  f"{category} {round(truncated, 2)} {round(occluded, 2)} {round(angle, 2)} {round(x1, 2)} {round(y1, 2)} {round(x2, 2)} {round(y2, 2)} {bbox_id} {0} {0} {0} {0} {0} {0}\n"
+        logging.info("Extracted kitti-formatted string: {}".format(kitti_string))
         return kitti_string
     except KeyError as e:
         logging.warn("Keyerror when extracting label for {}, key: {}".format(category, e))
@@ -233,13 +232,13 @@ def make_bbox_ref_file(IMG_DIR, KITTI_LABELS_DIR, out_filename):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--src_img_dir', default="DATA/bdd100k/images/100k/train", type=str, help="The directory of source images")
-    parser.add_argument('--json_path', default="DATA/bdd100k/labels/bdd100k_labels_images_train.json", type=str, help="The filepath to the json annotation file")
+    parser.add_argument('--src_img_dir', default="DATA/bdd100k/images/100k/val", type=str, help="The directory of source images")
+    parser.add_argument('--json_path', default="DATA/bdd100k/labels/bdd100k_labels_images_val.json", type=str, help="The filepath to the json annotation file")
 
-    parser.add_argument('--seg_out_dir', default="DATA/bdd100k/new_seg/train", type=str, help="Where the segmented images will be stored")
-    parser.add_argument('--labels_out_dir', default='DATA/bdd100k/kitti_labels/train', type=str, help="Where the bboxes for each image will be stored")
-    parser.add_argument('--seg_out_file', default='DATA/img_seg_train.txt', type=str, help="The filename of the file that links images and segmented images")
-    parser.add_argument('--labels_out_file', default='DATA/img_bbox_train.txt', type=str, help="The filename of the file that links images and label (.txt) files")
+    parser.add_argument('--seg_out_dir', default="DATA/bdd100k/new_seg/val", type=str, help="Where the segmented images will be stored")
+    parser.add_argument('--labels_out_dir', default='DATA/bdd100k/kitti_labels/val', type=str, help="Where the bboxes for each image will be stored")
+    parser.add_argument('--seg_out_file', default='DATA/img_seg_val.txt', type=str, help="The filename of the file that links images and segmented images")
+    parser.add_argument('--labels_out_file', default='DATA/img_bbox_val.txt', type=str, help="The filename of the file that links images and label (.txt) files")
 
     return parser.parse_args()
 
@@ -261,5 +260,5 @@ if __name__ == "__main__":
     maybe_create_dir(LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR)
     write_all_images_and_labels(json_dict, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR, show=False, write_segments=False)
     # Create link files that connects input (img) and output (bboxes or segmentation) 
-    #create_label_ref_file(SRC_IMG_DIR, LABEL_OUT_DIR, args.labels_out_file)
+    create_label_ref_file(SRC_IMG_DIR, LABEL_OUT_DIR, args.labels_out_file)
     #create_seg_ref_file(SRC_IMG_DIR, SEG_OUT_DIR, args.seg_out_file)
