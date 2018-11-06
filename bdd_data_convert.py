@@ -146,7 +146,7 @@ def extract_bboxes(label):
         angle = 0
         x1, y1, x2, y2 = label["box2d"].values()
         bbox_id = label["id"]
-        kitti_string =  f"{category} {round(truncated, 2)} {round(occluded, 2)} {round(angle, 2)} {round(x1, 2)} {round(y1, 2)} {round(x2, 2)} {round(y2, 2)} {bbox_id} {0} {0} {0} {0} {0} {0}\n"
+        kitti_string =  f"{category.capitalize()} {round(truncated, 2)} {round(occluded, 2)} {round(angle, 2)} {round(x1, 2)} {round(y1, 2)} {round(x2, 2)} {round(y2, 2)} {bbox_id} {0} {0} {0} {0} {0} {0}\n"
         logging.info("Extracted kitti-formatted string: {}".format(kitti_string))
         return kitti_string
     except KeyError as e:

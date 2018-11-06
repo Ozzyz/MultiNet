@@ -588,7 +588,7 @@ def main(_):
     if 'TV_DIR_RUNS' in os.environ:
         os.environ['TV_DIR_RUNS'] = os.path.join(os.environ['TV_DIR_RUNS'],
                                                  'MultiNet')
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.5)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=1)
     config = tf.ConfigProto(gpu_options=gpu_options)
     
     with tf.Session(config=config) as sess:
