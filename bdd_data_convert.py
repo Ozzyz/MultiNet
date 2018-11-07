@@ -261,4 +261,4 @@ if __name__ == "__main__":
     write_all_images_and_labels(json_dict, LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR, show=False, write_segments=False)
     # Create link files that connects input (img) and output (bboxes or segmentation) 
     create_label_ref_file(SRC_IMG_DIR, LABEL_OUT_DIR, args.labels_out_file)
-    #create_seg_ref_file(SRC_IMG_DIR, SEG_OUT_DIR, args.seg_out_file)
+    create_seg_ref_file(SRC_IMG_DIR, SEG_OUT_DIR, args.seg_out_file)

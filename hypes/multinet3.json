@@ -12,8 +12,8 @@
         "display_iter": 200,
         "eval_iter": 800,
         "write_iter": 800,
-        "save_iter": 5000,
-        "image_iter": 5000
+        "save_iter": 10000,
+        "image_iter": 10000
     },
 
     "selection": {
