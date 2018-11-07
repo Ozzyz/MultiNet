@@ -9,11 +9,11 @@
     "path": ["../incl", "../submodules/KittiSeg/incl", "../submodules/KittiBox/incl/"],
 
     "logging": {
-        "display_iter": 10,
-        "eval_iter": 5,
+        "display_iter": 200,
+        "eval_iter": 800,
         "write_iter": 800,
-        "save_iter": 5,
-        "image_iter": 5
+        "save_iter": 5000,
+        "image_iter": 5000
     },
 
     "selection": {
@@ -29,7 +29,7 @@
     },
 
     "solver": {
-        "max_steps": 20,
+        "max_steps": 140000,
         "batch_size": 1
     }
 }
