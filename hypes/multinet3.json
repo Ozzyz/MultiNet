@@ -10,10 +10,10 @@
 
     "logging": {
         "display_iter": 200,
-        "eval_iter": 800,
-        "write_iter": 800,
-        "save_iter": 10000,
-        "image_iter": 10000
+        "eval_iter": 200,
+        "write_iter": 200,
+        "save_iter": 200,
+        "image_iter": 200
     },
 
     "selection": {
@@ -30,6 +30,6 @@
 
     "solver": {
         "max_steps": 140000,
-        "batch_size": 1
+        "batch_size": 2
     }
 }
