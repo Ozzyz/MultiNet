@@ -123,4 +123,11 @@ If you benefit from this code, please cite our paper:
   year={2016}
 }
 ```
-
+# Bounding boxes
+The colors of the bounding boxes are defined in `submodules/KitiBox/incl/utils/train_utils.py` and have to be expanded if more classes are to be trained. Per default, the class-color pairs are:
+ Car - Red - (255, 0, 0)
+ Person - Green - (0, 255, 0)
+ Bike - Blue - (0, 0, 255)
+ Traffic Light - Yellow - (255, 255, 0)
+ Traffic Sign - Cyan - (0, 255, 255)
+ Truck - Pink - (255, 0, 255)
