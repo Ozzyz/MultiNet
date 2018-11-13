@@ -6,6 +6,7 @@ sftp-config.json
 
 # DATA Folder
 DATA/
+CHECKPOINTS
 
 # C extensions
 *.so
