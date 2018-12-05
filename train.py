@@ -110,7 +110,7 @@ def build_training_graph(hypes, queue, modules, first_iter):
         loss is a float,
         eval_lists is a dict with keys 'train' and 'val'
     """
-
+    logging.info("Building training graph")
     data_input = modules['input']
     encoder = modules['arch']
     objective = modules['objective']
@@ -123,17 +123,16 @@ def build_training_graph(hypes, queue, modules, first_iter):
     with tf.variable_scope(scope, reuse=reuse):
 
         learning_rate = tf.placeholder(tf.float32)
-
+        logging.info("Hypes: {}".format(hypes))
         # Add Input Producers to the Graph
         with tf.name_scope("Inputs"):
             image, labels = data_input.inputs(hypes, queue, phase='train')
-
+            logging.info("Labels: {}".format(labels))
         # Run inference on the encoder network
         logits = encoder.inference(hypes, image, train=True)
 
     # Build decoder on top of the logits
     decoded_logits = objective.decoder(hypes, logits, train=True)
-
     # Add to the Graph the Ops for loss calculation.
     with tf.name_scope("Loss"):
         losses = objective.loss(hypes, decoded_logits,
@@ -620,3 +619,5 @@ def main(_):
 
 if __name__ == '__main__':
     tf.app.run()
+
+
