@@ -162,17 +162,20 @@ def build_training_graph(hypes, queue, modules, first_iter):
     reuse = {True: False, False: True}[first_iter]
 
     scope = tf.get_variable_scope()
+    print("scope: ", scope.name)
 
     with tf.variable_scope(scope, reuse=reuse):
+    #with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
 
         learning_rate = tf.placeholder(tf.float32)
 
         # Add Input Producers to the Graph
         with tf.name_scope("Inputs"):
             image, labels = data_input.inputs(hypes, queue, phase='train')
+            #image, labels = data_input.inputs(hypes, queue, phase='val')  # causes error
 
         # Run inference on the encoder network
-        logits = encoder.inference(hypes, image, train=True)
+        logits = encoder.inference(hypes, image, train=False)
 
     # Build decoder on top of the logits
     decoded_logits = objective.decoder(hypes, logits, train=True)
@@ -186,7 +189,7 @@ def build_training_graph(hypes, queue, modules, first_iter):
         global_step = tf.Variable(0, trainable=False)
         # Build training operation
         print(hypes)
-        train_op = optimizer.training(hypes, losses, global_step, learning_rate)
+        #train_op = optimizer.training(hypes, losses, global_step, learning_rate)
 
     with tf.name_scope("Evaluation"):
         # Add the Op to compare the logits to the labels during evaluation.
@@ -198,7 +201,7 @@ def build_training_graph(hypes, queue, modules, first_iter):
     graph['losses'] = losses
     graph['eval_list'] = eval_list
     graph['summary_op'] = summary_op
-    graph['train_op'] = train_op
+    #graph['train_op'] = train_op
     graph['global_step'] = global_step
     graph['learning_rate'] = learning_rate
 

@@ -238,7 +238,7 @@ def parse_args(phase='val'):
 
     parser.add_argument('--seg_out_dir', default=f"DATA/bdd100k/new_seg/{phase}", type=str, help="Where the segmented images will be stored")
     parser.add_argument('--labels_out_dir', default="DATA/bdd100k/kitti_labels", type=str, help="Where the bboxes for each image will be stored")
-    parser.add_argument('--seg_out_file', default="DATA/img_seg_{phase}.txt", type=str, help="The filename of the file that links images and segmented images")
+    parser.add_argument('--seg_out_file', default=f"DATA/img_seg_{phase}.txt", type=str, help="The filename of the file that links images and segmented images")
     parser.add_argument('--labels_out_file', default=f"DATA/img_bbox_{phase}.txt", type=str, help="The filename of the file that links images and label (.txt) files")
 
     return parser.parse_args()
@@ -254,7 +254,7 @@ def maybe_create_dir(*dirs):
 
 
 if __name__ == "__main__":
-    args = parse_args(phase='train')
+    args = parse_args(phase='val')
     # Create all segmented images and labels
     json_dict = read_json(args.json_path)
     LABEL_OUT_DIR, SEG_OUT_DIR, SRC_IMG_DIR = args.labels_out_dir, args.seg_out_dir, args.src_img_dir
