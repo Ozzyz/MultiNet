@@ -64,12 +64,6 @@ def run_united_evaluation(meta_hypes, subhypes, submodules, subgraph, tv_sess, s
 
     n = 0
 
-    py_smoothers = {}
-    dict_smoothers = {}
-    for model in models:
-        py_smoothers[model] = train.MedianSmoother(5)
-        dict_smoothers[model] = train.ExpoSmoother(0.95)
-
     for model in models:
         eval_dict, images = submodules[model]['eval'].evaluate(
             subhypes[model], sess,
@@ -78,28 +72,11 @@ def run_united_evaluation(meta_hypes, subhypes, submodules, subgraph, tv_sess, s
 
         train._write_images_to_summary(images, summary_writer, step)
 
-        """
-        if images is not None and len(images) > 0:
-            name = str(n % 10) + '_' + images[0][0]
-            image_dir = subhypes[model]['dirs']['image_dir']
-            image_file = os.path.join(image_dir, name)
-            scp.misc.imsave(image_file, images[0][1])
-            n = n + 1
-        """
-
         logging.info("%s Evaluation Finished. Results" % model)
 
         logging.info('Raw Results:')
         utils.print_eval_dict(eval_dict, prefix='(raw)   ')
-        train._write_eval_dict_to_summary(
-            eval_dict, 'Evaluation/%s/raw' % model, summary_writer, step)
-
-        logging.info('Smooth Results:')
-        names, res = zip(*eval_dict)
-        smoothed = py_smoothers[model].update_weights(res)
-        eval_dict = zip(names, smoothed)
-        utils.print_eval_dict(eval_dict, prefix='(smooth)')
-        train._write_eval_dict_to_summary(eval_dict, 'Evaluation/%s/smoothed' % model, summary_writer, step)
+        train._write_eval_dict_to_summary(eval_dict, 'Evaluation/%s/raw' % model, summary_writer, step)
 
         train._write_images_to_disk(meta_hypes, images, step)
 
